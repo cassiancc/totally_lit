@@ -3,9 +3,11 @@ package io.github.realguyman.totally_lit.mixin;
 import io.github.realguyman.totally_lit.TotallyLit;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +20,7 @@ import java.util.Random;
 @Mixin(Item.class)
 public abstract class ItemMixin {
     @Inject(method = "inventoryTick", at = @At("HEAD"))
-    private void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected, CallbackInfo ci) {
+    private void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot, CallbackInfo ci) {
         if (!TotallyLit.CONFIG.itemsCanExtinguishInPlayerInventory() || !entity.isPlayer()) {
             return;
         }
@@ -75,7 +77,7 @@ public abstract class ItemMixin {
     }
 
     @Unique
-    private void extinguish(Float chance, Block lit, Block unlit, ItemStack stack, PlayerEntity player, int slot, World world) {
+    private void extinguish(Float chance, Block lit, Block unlit, ItemStack stack, PlayerEntity player, EquipmentSlot slot, World world) {
         if (!shouldExtinguish(chance, lit, player, world)) {
             return;
         }
@@ -84,8 +86,8 @@ public abstract class ItemMixin {
             player.getInventory().setStack(40, new ItemStack(unlit.asItem(), player.getInventory().getStack(40).getCount()));
         }
 
-        if (player.getInventory().getStack(slot).isOf(lit.asItem())) {
-            player.getInventory().setStack(slot, new ItemStack(unlit.asItem(), player.getInventory().getStack(slot).getCount()));
+        if (player.getInventory().getStack(slot.getEntitySlotId()).isOf(lit.asItem())) {
+            player.getInventory().setStack(slot.getEntitySlotId(), new ItemStack(unlit.asItem(), player.getInventory().getStack(slot.getEntitySlotId()).getCount()));
         }
     }
 }

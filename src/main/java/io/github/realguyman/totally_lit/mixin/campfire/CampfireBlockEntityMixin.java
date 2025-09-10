@@ -17,6 +17,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,16 +40,16 @@ public abstract class CampfireBlockEntityMixin implements CampfireBlockEntityAcc
         ticksBurntFor = ticks;
     }
 
-    @Inject(method = "readNbt", at = @At("RETURN"))
-    private void readBurnDurationFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup, CallbackInfo ci) {
-        if (nbt.contains("ticksBurntFor")) {
-            ticksBurntFor = nbt.getInt("ticksBurntFor");
+    @Inject(method = "readData", at = @At("RETURN"))
+    private void readBurnDurationFromNbt(ReadView view, CallbackInfo ci) {
+        if (view.contains("ticksBurntFor")) {
+            ticksBurntFor = view.getInt("ticksBurntFor", 0);
         }
     }
 
-    @Inject(method = "writeNbt", at = @At("RETURN"))
-    private void writeTicksBurntForToNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup, CallbackInfo ci) {
-        nbt.putInt("ticksBurntFor", ticksBurntFor);
+    @Inject(method = "writeData", at = @At("RETURN"))
+    private void writeTicksBurntForToNbt(WriteView view, CallbackInfo ci) {
+        view.putInt("ticksBurntFor", ticksBurntFor);
     }
 
     @Inject(method = "litServerTick", at = @At("RETURN"))

@@ -21,7 +21,7 @@
   },
   "depends": {
     "java": ">=21",
-    "minecraft": "1.21.4",
+    "minecraft": "~1.21.6",
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",
     "owo-lib": ">=0.12.0"
@@ -32,16 +32,6 @@
   "entrypoints": {
     "fabric-datagen": [
       "io.github.realguyman.totally_lit.TotallyLitDataGeneratorEntrypoint"
-    ],
-    "fabric-gametest": [
-      "io.github.realguyman.totally_lit.gametest.CampfireTestSuite",
-      "io.github.realguyman.totally_lit.gametest.CandleCakeTestSuite",
-      "io.github.realguyman.totally_lit.gametest.CandleTestSuite",
-      "io.github.realguyman.totally_lit.gametest.JackOLanternTestSuite",
-      "io.github.realguyman.totally_lit.gametest.LanternTestSuite",
-      "io.github.realguyman.totally_lit.gametest.SoulLanternTestSuite",
-      "io.github.realguyman.totally_lit.gametest.SoulTorchTestSuite",
-      "io.github.realguyman.totally_lit.gametest.TorchTestSuite"
     ],
     "main": [
       "io.github.realguyman.totally_lit.TotallyLit"

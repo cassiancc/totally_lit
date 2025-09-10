@@ -18,7 +18,7 @@ public class TotallyLitFluidTagProvider extends FabricTagProvider.FluidTagProvid
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup arg) {
-        getOrCreateTagBuilder(TagRegistry.TORCH_IGNITER_FLUIDS)
+        valueLookupBuilder(TagRegistry.TORCH_IGNITER_FLUIDS)
                 .addOptionalTag(ConventionalFluidTags.LAVA);
     }
 }

@@ -18,7 +18,7 @@ public class TotallyLitEntityTypeTagProvider extends FabricTagProvider.EntityTyp
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
-        getOrCreateTagBuilder(TagRegistry.CARETAKERS)
+        valueLookupBuilder(TagRegistry.CARETAKERS)
                 .add(EntityType.ILLUSIONER)
                 .add(EntityType.PILLAGER)
                 .add(EntityType.VILLAGER)
