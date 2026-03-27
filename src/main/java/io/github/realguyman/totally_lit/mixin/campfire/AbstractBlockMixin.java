@@ -3,55 +3,55 @@ package io.github.realguyman.totally_lit.mixin.campfire;
 import io.github.realguyman.totally_lit.TotallyLit;
 import io.github.realguyman.totally_lit.access.CampfireBlockEntityAccess;
 import io.github.realguyman.totally_lit.registry.TagRegistry;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CampfireBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.CampfireBlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.level.block.CampfireBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.CampfireBlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(AbstractBlock.class)
+@Mixin(BlockBehaviour.class)
 public abstract class AbstractBlockMixin {
-    @Inject(method = "hasRandomTicks", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isRandomlyTicking", at = @At("HEAD"), cancellable = true)
     private void hasRandomTicks(BlockState state, CallbackInfoReturnable<Boolean> cir) {
         cir.setReturnValue(true);
     }
 
     @Inject(method = "randomTick", at = @At("HEAD"))
-    private void extinguish(BlockState state, ServerWorld world, BlockPos pos, Random random, CallbackInfo ci) {
-        if (state.isIn(BlockTags.CAMPFIRES)) {
+    private void extinguish(BlockState state, ServerLevel world, BlockPos pos, RandomSource random, CallbackInfo ci) {
+        if (state.is(BlockTags.CAMPFIRES)) {
             final BlockEntity blockEntity = world.getBlockEntity(pos);
-            final boolean isRaining = world.hasRain(pos.up());
+            final boolean isRaining = world.isRainingAt(pos.above());
             final boolean isCampfireBlockEntity = blockEntity instanceof CampfireBlockEntity;
             final boolean isLitCampfire = CampfireBlock.isLitCampfire(state);
             final boolean isChanceInFavor = random.nextFloat() < TotallyLit.CONFIG.campfires.extinguishInRainChance();
 
-            var caretakers = world.getEntitiesByClass(
+            var caretakers = world.getEntitiesOfClass(
                     Entity.class,
-                    new Box(pos).expand(TotallyLit.CONFIG.caretakerCheckRadius()),
-                    EntityPredicates.VALID_LIVING_ENTITY
+                    new AABB(pos).inflate(TotallyLit.CONFIG.caretakerCheckRadius()),
+                    EntitySelector.LIVING_ENTITY_STILL_ALIVE
             ).stream().filter(entity -> entity.getType().isIn(TagRegistry.CARETAKERS)).toList();
 
             if (!caretakers.isEmpty()) {
                 return;
             }
 
-            if (isRaining && isLitCampfire && isCampfireBlockEntity && isChanceInFavor && world.setBlockState(pos, state.with(CampfireBlock.LIT, false))) {
-                CampfireBlock.extinguish(null, world, pos, state);
-                world.playSound(null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            if (isRaining && isLitCampfire && isCampfireBlockEntity && isChanceInFavor && world.setBlockAndUpdate(pos, state.setValue(CampfireBlock.LIT, false))) {
+                CampfireBlock.dowse(null, world, pos, state);
+                world.playSound(null, pos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, 1.0F, 1.0F);
                 ((CampfireBlockEntityAccess) blockEntity).totally_lit$setTicksBurntFor(0);
             }
         }

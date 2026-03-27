@@ -2,7 +2,7 @@ package io.github.realguyman.totally_lit;
 
 import io.github.realguyman.totally_lit.api.TotallyLitEntrypoint;
 import io.github.realguyman.totally_lit.registry.BlockRegistry;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Blocks;
 
 public class TotallyLitVanillaMap implements TotallyLitEntrypoint {
     @Override

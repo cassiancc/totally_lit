@@ -10,26 +10,26 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class TotallyLit implements ModInitializer {
 
         ItemRegistry.register();
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(listener -> {
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(listener -> {
             listener.addAfter(Items.JACK_O_LANTERN, ItemRegistry.UNLIT_JACK_O_LANTERN);
             listener.addAfter(Items.TORCH, ItemRegistry.UNLIT_TORCH);
             listener.addAfter(Items.SOUL_TORCH, ItemRegistry.UNLIT_SOUL_TORCH, ItemRegistry.GLOWSTONE_TORCH);
@@ -146,10 +146,10 @@ public class TotallyLit implements ModInitializer {
         });
     }
 
-    private ActionResult igniteUnlitItemInHand(
-            PlayerEntity player,
-            World world,
-            Hand hand,
+    private InteractionResult igniteUnlitItemInHand(
+            Player player,
+            Level world,
+            InteractionHand hand,
             BlockHitResult hitResult,
             Map<Block, Block> map,
             TagKey<Block> igniterBlocks,
@@ -157,92 +157,92 @@ public class TotallyLit implements ModInitializer {
     ) {
         final BlockPos pos = hitResult.getBlockPos();
         final BlockState state = world.getBlockState(pos);
-        final boolean isIgniterFluid = world.getFluidState(pos.offset(hitResult.getSide())).isIn(igniterFluids);
-        final boolean isIgniterBlock = state.isIn(igniterBlocks);
+        final boolean isIgniterFluid = world.getFluidState(pos.relative(hitResult.getDirection())).is(igniterFluids);
+        final boolean isIgniterBlock = state.is(igniterBlocks);
 
 
-        if ((!isIgniterBlock && !isIgniterFluid) || player.isSneaking()) {
-            return ActionResult.PASS;
+        if ((!isIgniterBlock && !isIgniterFluid) || player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
         }
 
-        final ItemStack stack = player.getStackInHand(hand);
+        final ItemStack stack = player.getItemInHand(hand);
 
         for (Map.Entry<Block, Block> entry : map.entrySet()) {
             final Item lit = entry.getKey().asItem();
             final Item unlit = entry.getValue().asItem();
 
-            if (!stack.isOf(unlit)) {
+            if (!stack.is(unlit)) {
                 continue;
             }
 
-            if (!player.giveItemStack(new ItemStack(lit))) {
-                return ActionResult.FAIL;
+            if (!player.addItem(new ItemStack(lit))) {
+                return InteractionResult.FAIL;
             }
 
-            stack.decrement(1);
-            world.playSound(null, player.getBlockPos(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
-            return ActionResult.SUCCESS;
+            stack.shrink(1);
+            world.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    private ActionResult igniteUnlitItemInHandFromRaycast(
-            PlayerEntity player,
-            World world,
-            Hand hand,
+    private InteractionResult igniteUnlitItemInHandFromRaycast(
+            Player player,
+            Level world,
+            InteractionHand hand,
             Map<Block, Block> map,
             TagKey<Fluid> igniterFluids
     ) {
-        final HitResult hit = player.raycast(3, 0, true);
+        final HitResult hit = player.pick(3, 0, true);
         final BlockPos pos = ((BlockHitResult) hit).getBlockPos();
-        final ItemStack stack = player.getStackInHand(hand);
+        final ItemStack stack = player.getItemInHand(hand);
 
-        if (!world.getFluidState(pos).isIn(igniterFluids)) {
-            return ActionResult.PASS;
+        if (!world.getFluidState(pos).is(igniterFluids)) {
+            return InteractionResult.PASS;
         }
 
         for (Map.Entry<Block, Block> entry : map.entrySet()) {
             Item lit = entry.getKey().asItem();
             Item unlit = entry.getValue().asItem();
 
-            if (!stack.isOf(unlit)) {
+            if (!stack.is(unlit)) {
                 continue;
             }
 
-            if (!player.giveItemStack(new ItemStack(lit))) {
-                return ActionResult.FAIL;
+            if (!player.addItem(new ItemStack(lit))) {
+                return InteractionResult.FAIL;
             }
 
-            stack.decrement(1);
-            world.playSound(null, player.getBlockPos(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
-            return ActionResult.SUCCESS;
+            stack.shrink(1);
+            world.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    private ActionResult igniteUnlitBlock(
-            PlayerEntity player,
-            World world,
-            Hand hand,
+    private InteractionResult igniteUnlitBlock(
+            Player player,
+            Level world,
+            InteractionHand hand,
             BlockHitResult hitResult,
             Map<Block, Block> map,
             TagKey<Item> igniters
     ) {
-        final ItemStack stack = player.getStackInHand(hand);
-        final boolean stackHasFireAspect = stack.getEnchantments().getEnchantments().contains(
-                world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(
+        final ItemStack stack = player.getItemInHand(hand);
+        final boolean stackHasFireAspect = stack.getEnchantments().keySet().contains(
+                world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(
                         Enchantments.FIRE_ASPECT
                 )
         );
 
-        if (player.isSneaking()) {
-            return ActionResult.PASS;
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
         }
 
-        if (!stack.isIn(igniters) && (!TotallyLit.CONFIG.fireAspectIgnitesUnlitVariants() || !stackHasFireAspect)) {
-            return ActionResult.PASS;
+        if (!stack.is(igniters) && (!TotallyLit.CONFIG.fireAspectIgnitesUnlitVariants() || !stackHasFireAspect)) {
+            return InteractionResult.PASS;
         }
 
         final BlockPos pos = hitResult.getBlockPos();
@@ -252,19 +252,19 @@ public class TotallyLit implements ModInitializer {
             final Block lit = entry.getKey();
             final Block unlit = entry.getValue();
 
-            if (!state.isOf(unlit)) {
+            if (!state.is(unlit)) {
                 continue;
             }
 
-            if (!world.setBlockState(pos, lit.getStateWithProperties(state))) {
-                return ActionResult.FAIL;
+            if (!world.setBlockAndUpdate(pos, lit.withPropertiesOf(state))) {
+                return InteractionResult.FAIL;
             }
 
-            stack.damage(1, player, EquipmentSlot.values()[hand.ordinal()]);
-            world.playSound(null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
-            return ActionResult.SUCCESS;
+            stack.hurtAndBreak(1, player, EquipmentSlot.values()[hand.ordinal()]);
+            world.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.125F, world.getRandom().nextFloat() * 0.5F + 0.125F);
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 }
