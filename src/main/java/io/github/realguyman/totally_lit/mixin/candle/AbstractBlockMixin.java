@@ -2,7 +2,6 @@ package io.github.realguyman.totally_lit.mixin.candle;
 
 import io.github.realguyman.totally_lit.TotallyLit;
 import io.github.realguyman.totally_lit.registry.TagRegistry;
-import net.minecraft.block.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -63,7 +62,7 @@ public abstract class AbstractBlockMixin {
                 Entity.class,
                 new AABB(pos).inflate(TotallyLit.CONFIG.caretakerCheckRadius()),
                 EntitySelector.LIVING_ENTITY_STILL_ALIVE
-        ).stream().filter(entity -> entity.getType().isIn(TagRegistry.CARETAKERS)).toList();
+        ).stream().filter(entity -> entity.is(TagRegistry.CARETAKERS)).toList();
 
         if (AbstractCandleBlock.isLit(state) && caretakers.isEmpty()) {
             AbstractCandleBlock.extinguish(null, state, world, pos);

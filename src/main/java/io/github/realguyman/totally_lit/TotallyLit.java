@@ -7,7 +7,7 @@ import io.github.realguyman.totally_lit.registry.TagRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.minecraft.core.BlockPos;
@@ -59,12 +59,12 @@ public class TotallyLit implements ModInitializer {
 
         ItemRegistry.register();
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(listener -> {
-            listener.addAfter(Items.JACK_O_LANTERN, ItemRegistry.UNLIT_JACK_O_LANTERN);
-            listener.addAfter(Items.TORCH, ItemRegistry.UNLIT_TORCH);
-            listener.addAfter(Items.SOUL_TORCH, ItemRegistry.UNLIT_SOUL_TORCH, ItemRegistry.GLOWSTONE_TORCH);
-            listener.addAfter(Items.LANTERN, ItemRegistry.UNLIT_LANTERN);
-            listener.addAfter(Items.SOUL_LANTERN, ItemRegistry.UNLIT_SOUL_LANTERN, ItemRegistry.GLOWSTONE_LANTERN);
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(listener -> {
+            listener.insertAfter(Items.JACK_O_LANTERN, ItemRegistry.UNLIT_JACK_O_LANTERN);
+            listener.insertAfter(Items.TORCH, ItemRegistry.UNLIT_TORCH);
+            listener.insertAfter(Items.SOUL_TORCH, ItemRegistry.UNLIT_SOUL_TORCH, ItemRegistry.GLOWSTONE_TORCH);
+            listener.insertAfter(Items.LANTERN, ItemRegistry.UNLIT_LANTERN);
+            listener.insertAfter(Items.SOUL_LANTERN, ItemRegistry.UNLIT_SOUL_LANTERN, ItemRegistry.GLOWSTONE_LANTERN);
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {

@@ -1,7 +1,6 @@
 package io.github.realguyman.totally_lit.util;
 
 import io.github.realguyman.totally_lit.TotallyLit;
-import net.minecraft.block.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;

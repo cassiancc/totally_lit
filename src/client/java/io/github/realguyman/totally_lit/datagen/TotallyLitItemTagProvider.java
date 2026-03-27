@@ -1,15 +1,15 @@
 package io.github.realguyman.totally_lit.datagen;
 
 import io.github.realguyman.totally_lit.registry.TagRegistry;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
 
-public class TotallyLitItemTagProvider extends FabricTagProvider.ItemTagProvider {
+public class TotallyLitItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
     public TotallyLitItemTagProvider(
-            FabricDataOutput output,
+            FabricPackOutput output,
             CompletableFuture<HolderLookup.Provider> completableFuture
     ) {
         super(output, completableFuture);

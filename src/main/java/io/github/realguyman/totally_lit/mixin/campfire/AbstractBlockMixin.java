@@ -43,7 +43,7 @@ public abstract class AbstractBlockMixin {
                     Entity.class,
                     new AABB(pos).inflate(TotallyLit.CONFIG.caretakerCheckRadius()),
                     EntitySelector.LIVING_ENTITY_STILL_ALIVE
-            ).stream().filter(entity -> entity.getType().isIn(TagRegistry.CARETAKERS)).toList();
+            ).stream().filter(entity -> entity.is(TagRegistry.CARETAKERS)).toList();
 
             if (!caretakers.isEmpty()) {
                 return;
